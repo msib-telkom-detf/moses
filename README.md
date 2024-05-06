@@ -10,6 +10,8 @@
 
 -------------------------
 
+## Important Docker Command
+
 ### Run Docker Compose
 ```
 docker compose -f <DOCKER COMPOSE FILE NAME> up -d
@@ -17,4 +19,4 @@ docker compose -f <DOCKER COMPOSE FILE NAME> up -d
 - -f: Specify the name of the Docker Compose file
 - -d: Run compose in background
 
-# ClickHouse
+## ClickHouse
