@@ -1,0 +1,8 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    volumes:
+      - ./user.xml:/etc/clickhouse-server/users.xml:ro
+    ports:
+      - "8002:9000"
+      - "9123:8123"
