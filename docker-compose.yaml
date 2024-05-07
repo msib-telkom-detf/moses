@@ -1,0 +1,19 @@
+version: "3.5"
+services:
+  clickhouse:
+    container_name: clickhouse
+    image: clickhouse/clickhouse-server
+    volumes:
+      - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
+    ports:
+      - "8002:9000"
+      - "9123:8123"
+  dbt:
+    container_name: dbt
+    build:
+      context: .
+      dockerfile: ./dbt-airflow/Dockerfile
+    volumes:
+      - ./dbt-airflow/imdb:/usr/src/dbt/imdb
+    working_dir: /usr/src/dbt
+    command: tail -F anything
