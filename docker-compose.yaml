@@ -5,9 +5,11 @@ services:
     image: clickhouse/clickhouse-server
     volumes:
       - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
+      - clickhouse_data:/var/lib/clickhouse
+      # - clickhouse_log:/var/log/clickhouse-server
     ports:
-      - "8002:9000"
-      - "9123:8123"
+      - 8002:9000
+      - 9123:8123
   dbt:
     container_name: dbt
     build:
@@ -17,3 +19,9 @@ services:
       - ./dbt-airflow/imdb:/usr/src/dbt/imdb
     working_dir: /usr/src/dbt
     command: tail -F anything
+
+volumes:
+  clickhouse_data:
+    external: false
+  # clickhouse_log:
+  #   external: false
