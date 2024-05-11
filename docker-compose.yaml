@@ -17,3 +17,98 @@ services:
       - ./dbt-airflow/imdb:/usr/src/dbt/imdb
     working_dir: /usr/src/dbt
     command: tail -F anything
+
+  superset-redis:
+    image: redis:7
+    container_name: superset_cache
+    restart: unless-stopped
+    volumes:
+      - superset_redis:/data
+
+  superset-db:
+    env_file:
+      - ./superset/.env
+    image: postgres:15
+    container_name: superset_db
+    restart: unless-stopped
+    volumes:
+      - superset_db_home:/var/lib/postgresql/data
+      - ./superset/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
+  superset:
+    env_file:
+      - ./superset/.env
+    image: apache/superset
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: root
+    restart: unless-stopped
+    ports:
+      - 8088:8088
+    depends_on:
+      - superset-db
+      - superset-redis
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+
+  superset-init:
+    image: apache/superset
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file:
+      - ./superset/.env
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-init.sh:/app/docker/docker-init.sh
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+
+  superset-worker:
+    image: apache/superset
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file:
+      - ./superset/.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+
+  superset-worker-beat:
+    image: apache/superset
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file:
+      - ./superset/.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+
+volumes:
+  superset_home:
+    external: false
+  superset_db_home:
+    external: false
+  superset_redis:
+    external: false
