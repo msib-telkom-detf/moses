@@ -27,7 +27,7 @@ services:
 
   superset-db:
     env_file:
-      - ./superset/.superset_env
+      - ./superset/superset.env
     image: postgres:15
     container_name: superset_db
     restart: unless-stopped
@@ -37,7 +37,7 @@ services:
 
   superset:
     env_file:
-      - ./superset/.superset_env
+      - ./superset/superset.env
     image: apache/superset
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
@@ -58,7 +58,7 @@ services:
     container_name: superset_init
     command: ["/app/docker/docker-init.sh"]
     env_file:
-      - ./superset/.superset_env
+      - ./superset/superset.env
     depends_on:
       - superset-db
       - superset-redis
@@ -76,7 +76,7 @@ services:
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
-      - ./superset/.superset_env
+      - ./superset/superset.env
     restart: unless-stopped
     depends_on:
       - superset-db
@@ -92,7 +92,7 @@ services:
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
-      - ./superset/.superset_env
+      - ./superset/superset.env
     restart: unless-stopped
     depends_on:
       - superset-db
