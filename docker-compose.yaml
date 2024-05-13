@@ -1,13 +1,30 @@
-# version: "3.5"
-# services:
-#   clickhouse:
-#     container_name: clickhouse
-#     image: clickhouse/clickhouse-server
-#     volumes:
-#       - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
-#     ports:
-#       - "8002:9000"
-#       - "9123:8123"
+version: "3.5"
+x-logging: &default-logging
+  options:
+    max-size: "100m"
+    max-file: "5"
+  driver: json-file
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=abcdef
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+  clickhouse:
+    container_name: clickhouse
+    image: clickhouse/clickhouse-server
+    volumes:
+      - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
+    ports:
+      - 8002:9000
+      - 9123:8123
 #   dbt:
 #     container_name: dbt
 #     build:
@@ -17,17 +34,6 @@
 #       - ./dbt-airflow/imdb:/usr/src/dbt/imdb
 #     working_dir: /usr/src/dbt
 #     command: tail -F anything
-
-
-
-version: "3.5"
-#https://github.com/compose-spec/compose-spec/blob/master/spec.md#using-extensions-as-fragments
-x-logging: &default-logging
-  options:
-    max-size: "100m"
-    max-file: "5"
-  driver: json-file
-services:
   docker-proxy:
       image: alpine/socat
       command: -t 900 TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
