@@ -6,22 +6,26 @@ x-logging: &default-logging
   driver: json-file
 services:
   postgres:
-    image: postgres
+    image: postgres:13
     container_name: postgres
     ports:
       - 5432:5432
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=abcdef
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     command:
       - "postgres"
       - "-c"
       - "wal_level=logical"
+
   clickhouse:
     container_name: clickhouse
     image: clickhouse/clickhouse-server
     volumes:
       - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
+      - clickhouse_data:/var/lib/clickhouse
     ports:
       - 8002:9000
       - 9123:8123
@@ -45,7 +49,6 @@ services:
         - ${AIRBYTE_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       networks:
         - airbyte_internal
-
   airbyte-init:
     image: airbyte/init:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -56,7 +59,6 @@ services:
       - HACK_LOCAL_ROOT_PARENT=${AIRBYTE_HACK_LOCAL_ROOT_PARENT}
     volumes:
       - ${AIRBYTE_HACK_LOCAL_ROOT_PARENT}:/local_parent
-
   airbyte-connector-builder-server:
     image: airbyte/connector-builder-server:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -81,9 +83,6 @@ services:
     depends_on:
       airbyte-bootloader:
         condition: service_completed_successfully
-  
-
-
   airbyte-webapp:
     image: airbyte/webapp:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -118,7 +117,6 @@ services:
       - airbyte-webapp
       - airbyte-server
       - airbyte-api-server
-
   airbyte-server:
     image: airbyte/server:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -211,7 +209,6 @@ services:
     depends_on:
       airbyte-bootloader:
         condition: service_completed_successfully
-
   airbyte-db:
     image: airbyte/db:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -230,7 +227,6 @@ services:
       - airbyte_db:/var/lib/postgresql/data
     networks:
       - airbyte_internal
-  
   airbyte-temporal:
     image: airbyte/temporal:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -248,7 +244,6 @@ services:
       - ./airbyte/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
       - airbyte_internal
-
   airbyte-worker:
     image: airbyte/worker:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -338,7 +333,6 @@ services:
     depends_on:
       airbyte-bootloader:
         condition: service_completed_successfully
-
   airbyte-cron:
     image: airbyte/cron:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -377,7 +371,6 @@ services:
     depends_on:
       airbyte-bootloader:
         condition: service_completed_successfully
-
   airbyte-bootloader:
     image: airbyte/bootloader:${AIRBYTE_VERSION}
     logging: *default-logging
@@ -397,8 +390,94 @@ services:
       airbyte-init:
         condition: service_completed_successfully
 
+  superset-redis:
+    image: redis:7
+    container_name: superset_cache
+    restart: unless-stopped
+    volumes:
+      - superset_redis:/data
+  superset-db:
+    env_file:
+      - ./superset/superset.env
+    image: postgres:15
+    container_name: superset_db
+    restart: unless-stopped
+    volumes:
+      - superset_db_home:/var/lib/postgresql/data
+      - ./superset/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+  superset:
+    env_file:
+      - ./superset/superset.env
+    image: apache/superset
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: root
+    restart: unless-stopped
+    ports:
+      - 8088:8088
+    depends_on:
+      - superset-db
+      - superset-redis
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+  superset-init:
+    image: apache/superset
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file:
+      - ./superset/superset.env
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-init.sh:/app/docker/docker-init.sh
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+  superset-worker:
+    image: apache/superset
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file:
+      - ./superset/superset.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+  superset-worker-beat:
+    image: apache/superset
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file:
+      - ./superset/superset.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+  
 
 volumes:
+  clickhouse_data:
+    external: false
+  postgres_data:
+    external: false
   airbyte_workspace:
     name: ${AIRBYTE_WORKSPACE_DOCKER_MOUNT}
   airbyte_local_root:
@@ -407,6 +486,12 @@ volumes:
     name: ${AIRBYTE_DATA_DOCKER_MOUNT}
   airbyte_db:
     name: ${AIRBYTE_DB_DOCKER_MOUNT}
+  superset_home:
+    external: false
+  superset_db_home:
+    external: false
+  superset_redis:
+    external: false
 configs:
   airbyte_flags:
     file: ./airbyte/flags.yml
