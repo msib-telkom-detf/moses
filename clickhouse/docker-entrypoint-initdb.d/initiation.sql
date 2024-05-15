@@ -1,7 +1,5 @@
--- Create database if does not exist
 CREATE DATABASE imdb;
 
--- Create table
 CREATE TABLE imdb.actors
 (
     id         UInt32,
@@ -45,39 +43,32 @@ CREATE TABLE imdb.roles
     created_at DateTime DEFAULT now()
 ) ENGINE = MergeTree ORDER BY (actor_id, movie_id);
 
--- Insert data if table imdb.actors does not exist
 INSERT INTO imdb.actors
 SELECT *
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_actors.tsv.gz',
-'TSVWithNames')
+'TSVWithNames');
 
--- Insert data if table imdb.directors does not exist
 INSERT INTO imdb.directors
 SELECT *
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_directors.tsv.gz',
-'TSVWithNames')
+'TSVWithNames');
 
--- Insert data if table imdb.genres does not exist
 INSERT INTO imdb.genres
 SELECT *
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_movies_genres.tsv.gz',
-'TSVWithNames')
+'TSVWithNames');
 
--- Insert data if table imdb.movie_directors does not exist
 INSERT INTO imdb.movie_directors
 SELECT *
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_movies_directors.tsv.gz',
-        'TSVWithNames')
+        'TSVWithNames');
 
--- Insert data if table imdb.movies does not exist
 INSERT INTO imdb.movies
 SELECT *
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_movies.tsv.gz',
-'TSVWithNames')
+'TSVWithNames');
 
--- Insert data if table imdb.roles does not exist
 INSERT INTO imdb.roles(actor_id, movie_id, role)
 SELECT actor_id, movie_id, role
 FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/imdb/imdb_ijs_roles.tsv.gz',
-'TSVWithNames')
-
+'TSVWithNames');
