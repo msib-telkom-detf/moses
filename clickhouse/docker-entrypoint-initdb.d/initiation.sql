@@ -1,8 +1,8 @@
 -- Create database if does not exist
-CREATE DATABASE IF NOT EXISTS imdb;
+CREATE DATABASE imdb;
 
 -- Create table
-CREATE TABLE IF NOT EXISTS imdb.actors
+CREATE TABLE imdb.actors
 (
     id         UInt32,
     first_name String,
@@ -10,26 +10,26 @@ CREATE TABLE IF NOT EXISTS imdb.actors
     gender     FixedString(1)
 ) ENGINE = MergeTree ORDER BY (id, first_name, last_name, gender);
 
-CREATE TABLE IF NOT EXISTS imdb.directors
+CREATE TABLE imdb.directors
 (
     id         UInt32,
     first_name String,
     last_name  String
 ) ENGINE = MergeTree ORDER BY (id, first_name, last_name);
 
-CREATE TABLE IF NOT EXISTS imdb.genres
+CREATE TABLE imdb.genres
 (
     movie_id UInt32,
     genre    String
 ) ENGINE = MergeTree ORDER BY (movie_id, genre);
 
-CREATE TABLE IF NOT EXISTS imdb.movie_directors
+CREATE TABLE imdb.movie_directors
 (
     director_id UInt32,
     movie_id    UInt64
 ) ENGINE = MergeTree ORDER BY (director_id, movie_id);
 
-CREATE TABLE IF NOT EXISTS imdb.movies
+CREATE TABLE imdb.movies
 (
     id   UInt32,
     name String,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS imdb.movies
     rank Float32 DEFAULT 0
 ) ENGINE = MergeTree ORDER BY (id, name, year);
 
-CREATE TABLE IF NOT EXISTS imdb.roles
+CREATE TABLE imdb.roles
 (
     actor_id   UInt32,
     movie_id   UInt32,
