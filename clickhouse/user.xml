@@ -7,6 +7,10 @@
         <default>
         </default>
 
+        <admin>
+            <readonly>0</readonly>
+        </admin>
+
         <!-- Profile that allows only read queries. -->
         <readonly>
             <readonly>1</readonly>
@@ -15,6 +19,11 @@
 
     <!-- Users and ACL. -->
     <users>
+        <admin>
+            <name>admin</name>
+            <password_sha256_hex>8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918</password_sha256_hex>
+            <profile>admin</profile>
+        </admin>
         <!-- If user name was not specified, 'default' user is used. -->
         <default>
             <!-- See also the files in users.d directory where the password can be overridden.
