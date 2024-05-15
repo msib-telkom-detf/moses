@@ -6,6 +6,6 @@ clickhouse_imdb:
       schema: imdb_dbt
       host: clickhouse
       port: 8123
-      user: default
-      password: ''
+      user: admin
+      password: 'admin'
       secure: False
