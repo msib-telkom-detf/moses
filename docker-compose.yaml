@@ -1,19 +1,500 @@
 version: "3.5"
+x-logging: &default-logging
+  options:
+    max-size: "100m"
+    max-file: "5"
+  driver: json-file
 services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=abcdef
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+
   clickhouse:
     container_name: clickhouse
     image: clickhouse/clickhouse-server
     volumes:
       - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
+      - clickhouse_data:/var/lib/clickhouse
     ports:
-      - "8002:9000"
-      - "9123:8123"
-  dbt:
-    container_name: dbt
-    build:
-      context: .
-      dockerfile: ./dbt-airflow/Dockerfile
+      - 8002:9000
+      - 9123:8123
+#   dbt:
+#     container_name: dbt
+#     build:
+#       context: .
+#       dockerfile: ./dbt-airflow/Dockerfile
+#     volumes:
+#       - ./dbt-airflow/imdb:/usr/src/dbt/imdb
+#     working_dir: /usr/src/dbt
+#     command: tail -F anything
+
+  airbyte-docker-proxy:
+      image: alpine/socat
+      command: -t 900 TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+      ports: 
+        - "2375"
+      user: root
+      volumes: 
+        - ${AIRBYTE_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      networks:
+        - airbyte_internal
+  airbyte-init:
+    image: airbyte/init:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-init
+    command: /bin/sh -c "./scripts/create_mount_directories.sh /local_parent ${AIRBYTE_HACK_LOCAL_ROOT_PARENT} ${AIRBYTE_LOCAL_ROOT}"
+    environment:
+      - LOCAL_ROOT=${AIRBYTE_LOCAL_ROOT}
+      - HACK_LOCAL_ROOT_PARENT=${AIRBYTE_HACK_LOCAL_ROOT_PARENT}
     volumes:
-      - ./dbt-airflow/imdb:/usr/src/dbt/imdb
-    working_dir: /usr/src/dbt
-    command: tail -F anything
+      - ${AIRBYTE_HACK_LOCAL_ROOT_PARENT}:/local_parent
+  airbyte-connector-builder-server:
+    image: airbyte/connector-builder-server:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-connector-builder-server
+    restart: unless-stopped
+    ports:
+      - 8080
+    environment:
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - CDK_VERSION=${AIRBYTE_CDK_VERSION}
+      - DEPLOYMENT_MODE=${AIRBYTE_DEPLOYMENT_MODE}
+      - METRIC_CLIENT=${AIRBYTE_METRIC_CLIENT}
+      - MICROMETER_METRICS_ENABLED=${AIRBYTE_MICROMETER_METRICS_ENABLED}
+      - MICROMETER_METRICS_STATSD_FLAVOR=${AIRBYTE_MICROMETER_METRICS_STATSD_FLAVOR}
+      - PYTHON_VERSION=${AIRBYTE_PYTHON_VERSION}
+      - SEGMENT_WRITE_KEY=${AIRBYTE_SEGMENT_WRITE_KEY}
+      - STATSD_HOST=${AIRBYTE_STATSD_HOST}
+      - STATSD_PORT=${AIRBYTE_STATSD_PORT}
+      - TRACKING_STRATEGY=${AIRBYTE_TRACKING_STRATEGY}
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-webapp:
+    image: airbyte/webapp:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-webapp
+    restart: unless-stopped
+    environment:
+      - INTERNAL_API_HOST=${AIRBYTE_INTERNAL_API_HOST}
+      - CONNECTOR_BUILDER_API_HOST=${AIRBYTE_CONNECTOR_BUILDER_API_HOST}
+      - KEYCLOAK_INTERNAL_HOST=localhost # placeholder to ensure the webapp's nginx config is valid
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-proxy:
+    image: airbyte/proxy:${AIRBYTE_VERSION}
+    container_name: airbyte-proxy
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8003:8003"
+      - "8006:8006"
+    environment:
+      - BASIC_AUTH_USERNAME=${AIRBYTE_BASIC_AUTH_USERNAME}
+      - BASIC_AUTH_PASSWORD=${AIRBYTE_BASIC_AUTH_PASSWORD}
+      - BASIC_AUTH_PROXY_TIMEOUT=${AIRBYTE_BASIC_AUTH_PROXY_TIMEOUT}
+    networks:
+      - airbyte_internal
+      - airbyte_public
+    depends_on:
+      - airbyte-webapp
+      - airbyte-server
+      - airbyte-api-server
+  airbyte-server:
+    image: airbyte/server:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-server
+    restart: unless-stopped
+    environment:
+      - AIRBYTE_ROLE=${AIRBYTE_ROLE:-}
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - AUTO_DETECT_SCHEMA=${AIRBYTE_AUTO_DETECT_SCHEMA}
+      - CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION=${AIRBYTE_CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION:-}
+      - CONFIG_DATABASE_PASSWORD=${AIRBYTE_CONFIG_DATABASE_PASSWORD:-}
+      - CONFIG_DATABASE_URL=${AIRBYTE_CONFIG_DATABASE_URL:-}
+      - CONFIG_DATABASE_USER=${AIRBYTE_CONFIG_DATABASE_USER:-}
+      - CONFIG_ROOT=${AIRBYTE_CONFIG_ROOT}
+      - CONNECTOR_REGISTRY_BASE_URL=${AIRBYTE_CONNECTOR_REGISTRY_BASE_URL:-}
+      - DATABASE_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - DATABASE_URL=${AIRBYTE_DATABASE_URL}
+      - DATABASE_USER=${AIRBYTE_DATABASE_USER}
+      - DD_AGENT_HOST=${AIRBYTE_DD_AGENT_HOST}
+      - DD_DOGSTATSD_PORT=${AIRBYTE_DD_DOGSTATSD_PORT}
+      - FEATURE_FLAG_CLIENT=${AIRBYTE_FEATURE_FLAG_CLIENT}
+      - GITHUB_STORE_BRANCH=${AIRBYTE_GITHUB_STORE_BRANCH}
+      - JOBS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION=${AIRBYTE_JOBS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION:-}
+      - JOB_ERROR_REPORTING_SENTRY_DSN=${AIRBYTE_JOB_ERROR_REPORTING_SENTRY_DSN}
+      - JOB_ERROR_REPORTING_STRATEGY=${AIRBYTE_JOB_ERROR_REPORTING_STRATEGY}
+      - JOB_MAIN_CONTAINER_CPU_LIMIT=${AIRBYTE_JOB_MAIN_CONTAINER_CPU_LIMIT}
+      - JOB_MAIN_CONTAINER_CPU_REQUEST=${AIRBYTE_JOB_MAIN_CONTAINER_CPU_REQUEST}
+      - JOB_MAIN_CONTAINER_MEMORY_LIMIT=${AIRBYTE_JOB_MAIN_CONTAINER_MEMORY_LIMIT}
+      - JOB_MAIN_CONTAINER_MEMORY_REQUEST=${AIRBYTE_JOB_MAIN_CONTAINER_MEMORY_REQUEST}
+      - LAUNCHDARKLY_KEY=${AIRBYTE_LAUNCHDARKLY_KEY}
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+      - METRIC_CLIENT=${AIRBYTE_METRIC_CLIENT}
+      - MAX_NOTIFY_WORKERS=5
+      - MICROMETER_METRICS_ENABLED=${AIRBYTE_MICROMETER_METRICS_ENABLED}
+      - MICROMETER_METRICS_STATSD_FLAVOR=${AIRBYTE_MICROMETER_METRICS_STATSD_FLAVOR}
+      - MICRONAUT_ENVIRONMENTS=${AIRBYTE_WORKERS_MICRONAUT_ENVIRONMENTS}
+      - NEW_SCHEDULER=${AIRBYTE_NEW_SCHEDULER}
+      - PUBLISH_METRICS=${AIRBYTE_PUBLISH_METRICS}
+      - SECRET_PERSISTENCE=${AIRBYTE_SECRET_PERSISTENCE}
+      - SEGMENT_WRITE_KEY=${AIRBYTE_SEGMENT_WRITE_KEY}
+      - SHOULD_RUN_NOTIFY_WORKFLOWS=${AIRBYTE_SHOULD_RUN_NOTIFY_WORKFLOWS}
+      - STATSD_HOST=${AIRBYTE_STATSD_HOST}
+      - STATSD_PORT=${AIRBYTE_STATSD_PORT}
+      - STORAGE_BUCKET_ACTIVITY_PAYLOAD=${AIRBYTE_STORAGE_BUCKET_ACTIVITY_PAYLOAD}
+      - STORAGE_BUCKET_LOG=${AIRBYTE_STORAGE_BUCKET_LOG}
+      - STORAGE_BUCKET_STATE=${AIRBYTE_STORAGE_BUCKET_STATE}
+      - STORAGE_BUCKET_WORKLOAD_OUTPUT=${AIRBYTE_STORAGE_BUCKET_WORKLOAD_OUTPUT}
+      - STORAGE_TYPE=${AIRBYTE_STORAGE_TYPE}
+      - TEMPORAL_HOST=${AIRBYTE_TEMPORAL_HOST}
+      - TRACKING_STRATEGY=${AIRBYTE_TRACKING_STRATEGY}
+      - WEBAPP_URL=${AIRBYTE_WEBAPP_URL}
+      - WORKER_ENVIRONMENT=${AIRBYTE_WORKER_ENVIRONMENT}
+      - WORKSPACE_ROOT=${AIRBYTE_WORKSPACE_ROOT}
+      - CONNECTOR_BUILDER_SERVER_API_HOST=${AIRBYTE_CONNECTOR_BUILDER_SERVER_API_HOST}
+    ports:
+      - "8001"
+    configs:
+      - airbyte_flags
+    volumes:
+      - airbyte_workspace:${AIRBYTE_WORKSPACE_ROOT}
+      - airbyte_data:${AIRBYTE_CONFIG_ROOT}
+      - airbyte_local_root:${AIRBYTE_LOCAL_ROOT}
+      - ./configs:/app/configs:ro
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-api-server:
+    image: airbyte/airbyte-api-server:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-api-server
+    restart: unless-stopped
+    ports:
+      - "8006"
+    environment:
+      - AIRBYTE_API_HOST=${AIRBYTE_API_HOST}
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - DEPLOYMENT_MODE=${AIRBYTE_DEPLOYMENT_MODE}
+      - INTERNAL_API_HOST=${AIRBYTE_INTERNAL_API_URL} # Non-ideal, but the existing URL can't have https:// added because it's used for nginx conf
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+      - MICROMETER_METRICS_ENABLED=${AIRBYTE_MICROMETER_METRICS_ENABLED}
+      - MICROMETER_METRICS_STATSD_FLAVOR=${AIRBYTE_MICROMETER_METRICS_STATSD_FLAVOR}
+      - SEGMENT_WRITE_KEY=${AIRBYTE_SEGMENT_WRITE_KEY}
+      - STATSD_HOST=${AIRBYTE_STATSD_HOST}
+      - STATSD_PORT=${AIRBYTE_STATSD_PORT}
+      - TRACKING_STRATEGY=${AIRBYTE_TRACKING_STRATEGY}
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-db:
+    image: airbyte/db:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-db
+    restart: unless-stopped
+    environment:
+      - CONFIG_DATABASE_PASSWORD=${AIRBYTE_CONFIG_DATABASE_PASSWORD:-}
+      - CONFIG_DATABASE_URL=${AIRBYTE_CONFIG_DATABASE_URL:-}
+      - CONFIG_DATABASE_USER=${AIRBYTE_CONFIG_DATABASE_USER:-}
+      - DATABASE_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - DATABASE_URL=${AIRBYTE_DATABASE_URL}
+      - DATABASE_USER=${AIRBYTE_DATABASE_USER}
+      - POSTGRES_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - POSTGRES_USER=${AIRBYTE_DATABASE_USER}
+    volumes:
+      - airbyte_db:/var/lib/postgresql/data
+    networks:
+      - airbyte_internal
+  airbyte-temporal:
+    image: airbyte/temporal:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-temporal
+    restart: unless-stopped
+    environment:
+      - DB=postgresql
+      - DB_PORT=${AIRBYTE_DATABASE_PORT}
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+      - POSTGRES_PWD=${AIRBYTE_DATABASE_PASSWORD}
+      - POSTGRES_SEEDS=${AIRBYTE_DATABASE_HOST}
+      - POSTGRES_USER=${AIRBYTE_DATABASE_USER}
+    volumes:
+      - ./airbyte/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      - airbyte_internal
+  airbyte-worker:
+    image: airbyte/worker:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-worker
+    restart: unless-stopped
+    environment:
+      - ACTIVITY_INITIAL_DELAY_BETWEEN_ATTEMPTS_SECONDS=${AIRBYTE_ACTIVITY_INITIAL_DELAY_BETWEEN_ATTEMPTS_SECONDS}
+      - ACTIVITY_MAX_ATTEMPT=${AIRBYTE_ACTIVITY_MAX_ATTEMPT}
+      - ACTIVITY_MAX_DELAY_BETWEEN_ATTEMPTS_SECONDS=${AIRBYTE_ACTIVITY_MAX_DELAY_BETWEEN_ATTEMPTS_SECONDS}
+      - AIRBYTE_ROLE=${AIRBYTE_ROLE:-}
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - APPLY_FIELD_SELECTION=${AIRBYTE_APPLY_FIELD_SELECTION}
+      - AUTO_DETECT_SCHEMA=${AIRBYTE_AUTO_DETECT_SCHEMA}
+      - AUTO_DISABLE_FAILING_CONNECTIONS=${AIRBYTE_AUTO_DISABLE_FAILING_CONNECTIONS}
+      - CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION=${AIRBYTE_CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION:-}
+      - CONFIG_DATABASE_PASSWORD=${AIRBYTE_CONFIG_DATABASE_PASSWORD:-}
+      - CONFIG_DATABASE_URL=${AIRBYTE_CONFIG_DATABASE_URL:-}
+      - CONFIG_DATABASE_USER=${AIRBYTE_CONFIG_DATABASE_USER:-}
+      - CONFIG_ROOT=${AIRBYTE_CONFIG_ROOT}
+      - CONNECTOR_REGISTRY_BASE_URL=${AIRBYTE_CONNECTOR_REGISTRY_BASE_URL:-}
+      - DATABASE_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - DATABASE_URL=${AIRBYTE_DATABASE_URL}
+      - DATABASE_USER=${AIRBYTE_DATABASE_USER}
+      - DEPLOYMENT_MODE=${AIRBYTE_DEPLOYMENT_MODE}
+      - DD_AGENT_HOST=${AIRBYTE_DD_AGENT_HOST}
+      - DD_DOGSTATSD_PORT=${AIRBYTE_DD_DOGSTATSD_PORT}
+      - DOCKER_HOST=airbyte-docker-proxy:2375
+      - FEATURE_FLAG_CLIENT=${AIRBYTE_FEATURE_FLAG_CLIENT}
+      - FIELD_SELECTION_WORKSPACES=${AIRBYTE_FIELD_SELECTION_WORKSPACES}
+      - INTERNAL_API_HOST=${AIRBYTE_INTERNAL_API_HOST}
+      - JOBS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION=${AIRBYTE_JOBS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION:-}
+      - JOB_ERROR_REPORTING_SENTRY_DSN=${AIRBYTE_JOB_ERROR_REPORTING_SENTRY_DSN}
+      - JOB_ERROR_REPORTING_STRATEGY=${AIRBYTE_JOB_ERROR_REPORTING_STRATEGY}
+      - JOB_MAIN_CONTAINER_CPU_LIMIT=${AIRBYTE_JOB_MAIN_CONTAINER_CPU_LIMIT}
+      - JOB_MAIN_CONTAINER_CPU_REQUEST=${AIRBYTE_JOB_MAIN_CONTAINER_CPU_REQUEST}
+      - JOB_MAIN_CONTAINER_MEMORY_LIMIT=${AIRBYTE_JOB_MAIN_CONTAINER_MEMORY_LIMIT}
+      - JOB_MAIN_CONTAINER_MEMORY_REQUEST=${AIRBYTE_JOB_MAIN_CONTAINER_MEMORY_REQUEST}
+      - LAUNCHDARKLY_KEY=${AIRBYTE_LAUNCHDARKLY_KEY}
+      - LOCAL_DOCKER_MOUNT=${AIRBYTE_LOCAL_DOCKER_MOUNT}
+      - LOCAL_ROOT=${AIRBYTE_LOCAL_ROOT}
+      - LOG_CONNECTOR_MESSAGES=${AIRBYTE_LOG_CONNECTOR_MESSAGES}
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+      - MAX_CHECK_WORKERS=${AIRBYTE_MAX_CHECK_WORKERS}
+      - MAX_DISCOVER_WORKERS=${AIRBYTE_MAX_DISCOVER_WORKERS}
+      - MAX_NOTIFY_WORKERS=${AIRBYTE_MAX_NOTIFY_WORKERS}
+      - MAX_SPEC_WORKERS=${AIRBYTE_MAX_SPEC_WORKERS}
+      - MAX_SYNC_WORKERS=${AIRBYTE_MAX_SYNC_WORKERS}
+      - METRIC_CLIENT=${AIRBYTE_METRIC_CLIENT}
+      - MICROMETER_METRICS_ENABLED=${AIRBYTE_MICROMETER_METRICS_ENABLED}
+      - MICROMETER_METRICS_STATSD_FLAVOR=${AIRBYTE_MICROMETER_METRICS_STATSD_FLAVOR}
+      - MICRONAUT_ENVIRONMENTS=${AIRBYTE_WORKERS_MICRONAUT_ENVIRONMENTS}
+      - NORMALIZATION_JOB_MAIN_CONTAINER_CPU_LIMIT=${AIRBYTE_NORMALIZATION_JOB_MAIN_CONTAINER_CPU_LIMIT}
+      - NORMALIZATION_JOB_MAIN_CONTAINER_CPU_REQUEST=${AIRBYTE_NORMALIZATION_JOB_MAIN_CONTAINER_CPU_REQUEST}
+      - NORMALIZATION_JOB_MAIN_CONTAINER_MEMORY_LIMIT=${AIRBYTE_NORMALIZATION_JOB_MAIN_CONTAINER_MEMORY_LIMIT}
+      - NORMALIZATION_JOB_MAIN_CONTAINER_MEMORY_REQUEST=${AIRBYTE_NORMALIZATION_JOB_MAIN_CONTAINER_MEMORY_REQUEST}
+      - OTEL_COLLECTOR_ENDPOINT=${AIRBYTE_OTEL_COLLECTOR_ENDPOINT}
+      - PUBLISH_METRICS=${AIRBYTE_PUBLISH_METRICS}
+      - SECRET_PERSISTENCE=${AIRBYTE_SECRET_PERSISTENCE}
+      - SEGMENT_WRITE_KEY=${AIRBYTE_SEGMENT_WRITE_KEY}
+      - SHOULD_RUN_NOTIFY_WORKFLOWS=${AIRBYTE_SHOULD_RUN_NOTIFY_WORKFLOWS}
+      - STATSD_HOST=${AIRBYTE_STATSD_HOST}
+      - STATSD_PORT=${AIRBYTE_STATSD_PORT}
+      - SYNC_JOB_INIT_RETRY_TIMEOUT_MINUTES=${AIRBYTE_SYNC_JOB_INIT_RETRY_TIMEOUT_MINUTES}
+      - SYNC_JOB_MAX_ATTEMPTS=${AIRBYTE_SYNC_JOB_MAX_ATTEMPTS}
+      - SYNC_JOB_MAX_TIMEOUT_DAYS=${AIRBYTE_SYNC_JOB_MAX_TIMEOUT_DAYS}
+      - TEMPORAL_HOST=${AIRBYTE_TEMPORAL_HOST}
+      - TRACKING_STRATEGY=${AIRBYTE_TRACKING_STRATEGY}
+      - WEBAPP_URL=${AIRBYTE_WEBAPP_URL}
+      - STORAGE_BUCKET_ACTIVITY_PAYLOAD=${AIRBYTE_STORAGE_BUCKET_ACTIVITY_PAYLOAD}
+      - STORAGE_BUCKET_LOG=${AIRBYTE_STORAGE_BUCKET_LOG}
+      - STORAGE_BUCKET_STATE=${AIRBYTE_STORAGE_BUCKET_STATE}
+      - STORAGE_BUCKET_WORKLOAD_OUTPUT=${AIRBYTE_STORAGE_BUCKET_WORKLOAD_OUTPUT}
+      - STORAGE_TYPE=${AIRBYTE_STORAGE_TYPE}
+      - WORKFLOW_FAILURE_RESTART_DELAY_SECONDS=${AIRBYTE_WORKFLOW_FAILURE_RESTART_DELAY_SECONDS}
+      - WORKLOAD_API_HOST=${AIRBYTE_WORKLOAD_API_URL}
+      - WORKSPACE_DOCKER_MOUNT=${AIRBYTE_WORKSPACE_DOCKER_MOUNT}
+      - WORKSPACE_ROOT=${AIRBYTE_WORKSPACE_ROOT}
+    configs:
+      - airbyte_flags
+    volumes:
+      - airbyte_workspace:${AIRBYTE_WORKSPACE_ROOT}
+      - airbyte_local_root:${AIRBYTE_LOCAL_ROOT}
+    ports:
+      - "9000"
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-cron:
+    image: airbyte/cron:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-cron
+    restart: unless-stopped
+    environment:
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION=${AIRBYTE_CONFIGS_DATABASE_MINIMUM_FLYWAY_MIGRATION_VERSION}
+      - CONNECTOR_REGISTRY_BASE_URL=${AIRBYTE_CONNECTOR_REGISTRY_BASE_URL:-}
+      - CONNECTOR_REGISTRY_SEED_PROVIDER=${AIRBYTE_CONNECTOR_REGISTRY_SEED_PROVIDER:-}
+      - DATABASE_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - DATABASE_URL=${AIRBYTE_DATABASE_URL}
+      - DATABASE_USER=${AIRBYTE_DATABASE_USER}
+      - DD_AGENT_HOST=${AIRBYTE_DD_AGENT_HOST}
+      - DD_DOGSTATSD_PORT=${AIRBYTE_DD_DOGSTATSD_PORT}
+      - DEPLOYMENT_MODE=${AIRBYTE_DEPLOYMENT_MODE}
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+      - METRIC_CLIENT=${AIRBYTE_METRIC_CLIENT}
+      - MICROMETER_METRICS_ENABLED=${AIRBYTE_MICROMETER_METRICS_ENABLED}
+      - MICROMETER_METRICS_STATSD_FLAVOR=${AIRBYTE_MICROMETER_METRICS_STATSD_FLAVOR}
+      - MICRONAUT_ENVIRONMENTS=${AIRBYTE_CRON_MICRONAUT_ENVIRONMENTS}
+      - PUBLISH_METRICS=${AIRBYTE_PUBLISH_METRICS}
+      - SEGMENT_WRITE_KEY=${AIRBYTE_SEGMENT_WRITE_KEY}
+      - STATSD_HOST=${AIRBYTE_STATSD_HOST}
+      - STATSD_PORT=${AIRBYTE_STATSD_PORT}
+      - TEMPORAL_HISTORY_RETENTION_IN_DAYS=${AIRBYTE_TEMPORAL_HISTORY_RETENTION_IN_DAYS}
+      - TRACKING_STRATEGY=${AIRBYTE_TRACKING_STRATEGY}
+      - UPDATE_DEFINITIONS_CRON_ENABLED=${AIRBYTE_UPDATE_DEFINITIONS_CRON_ENABLED}
+      - WORKSPACE_ROOT=${AIRBYTE_WORKSPACE_ROOT}
+    configs:
+      - airbyte_flags
+    volumes:
+      - airbyte_workspace:${AIRBYTE_WORKSPACE_ROOT}
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-bootloader:
+        condition: service_completed_successfully
+  airbyte-bootloader:
+    image: airbyte/bootloader:${AIRBYTE_VERSION}
+    logging: *default-logging
+    container_name: airbyte-bootloader
+    environment:
+      - AIRBYTE_VERSION=${AIRBYTE_VERSION}
+      - CONNECTOR_REGISTRY_BASE_URL=${AIRBYTE_CONNECTOR_REGISTRY_BASE_URL:-}
+      - CONNECTOR_REGISTRY_SEED_PROVIDER=${AIRBYTE_CONNECTOR_REGISTRY_SEED_PROVIDER:-}
+      - DATABASE_PASSWORD=${AIRBYTE_DATABASE_PASSWORD}
+      - DATABASE_URL=${AIRBYTE_DATABASE_URL}
+      - DATABASE_USER=${AIRBYTE_DATABASE_USER}
+      - LOCAL_CONNECTOR_CATALOG_PATH=${AIRBYTE_LOCAL_CONNECTOR_CATALOG_PATH}
+      - LOG_LEVEL=${AIRBYTE_LOG_LEVEL}
+    networks:
+      - airbyte_internal
+    depends_on:
+      airbyte-init:
+        condition: service_completed_successfully
+
+  superset-redis:
+    image: redis:7
+    container_name: superset_cache
+    restart: unless-stopped
+    volumes:
+      - superset_redis:/data
+  superset-db:
+    env_file:
+      - ./superset/superset.env
+    image: postgres:15
+    container_name: superset_db
+    restart: unless-stopped
+    volumes:
+      - superset_db_home:/var/lib/postgresql/data
+      - ./superset/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+  superset:
+    env_file:
+      - ./superset/superset.env
+    image: apache/superset
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: root
+    restart: unless-stopped
+    ports:
+      - 8088:8088
+    depends_on:
+      - superset-db
+      - superset-redis
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+  superset-init:
+    image: apache/superset
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file:
+      - ./superset/superset.env
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-init.sh:/app/docker/docker-init.sh
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+  superset-worker:
+    image: apache/superset
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file:
+      - ./superset/superset.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+  superset-worker-beat:
+    image: apache/superset
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file:
+      - ./superset/superset.env
+    restart: unless-stopped
+    depends_on:
+      - superset-db
+      - superset-redis
+    user: root
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker/docker-bootstrap.sh
+      - ./superset/requirements.txt:/app/docker/requirements-local.txt
+      - superset_home:/app/superset_home
+    healthcheck:
+      disable: true
+  
+
+volumes:
+  clickhouse_data:
+    external: false
+  postgres_data:
+    external: false
+  airbyte_workspace:
+    name: ${AIRBYTE_WORKSPACE_DOCKER_MOUNT}
+  airbyte_local_root:
+    name: ${AIRBYTE_LOCAL_DOCKER_MOUNT}
+  airbyte_data:
+    name: ${AIRBYTE_DATA_DOCKER_MOUNT}
+  airbyte_db:
+    name: ${AIRBYTE_DB_DOCKER_MOUNT}
+  superset_home:
+    external: false
+  superset_db_home:
+    external: false
+  superset_redis:
+    external: false
+configs:
+  airbyte_flags:
+    file: ./airbyte/flags.yml
+networks:
+  airbyte_public:
+  airbyte_internal:
