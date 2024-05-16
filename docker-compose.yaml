@@ -700,6 +700,8 @@ services:
       airbyte-init:
         condition: service_completed_successfully
 
+# ----------------------------------- SUPERSET ----------------------------------- 
+
   superset-redis:
     image: redis:7
     container_name: superset_cache
@@ -716,8 +718,6 @@ services:
     volumes:
       - superset_db_home:/var/lib/postgresql/data
       - ./superset/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-
-# ----------------------------------- SUPERSET ----------------------------------- 
 
   superset:
     env_file:
