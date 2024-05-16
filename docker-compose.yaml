@@ -792,6 +792,7 @@ services:
 volumes:
   clickhouse_data:
     external: false
+  postgres-db-volume:
   postgres_data:
     external: false
   airbyte_workspace:
@@ -808,7 +809,6 @@ volumes:
     external: false
   superset_redis:
     external: false
-  postgres-db-volume:
 configs:
   airbyte_flags:
     file: ./airbyte/flags.yml
