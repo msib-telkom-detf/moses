@@ -97,7 +97,7 @@ services:
     volumes:
       - ./clickhouse/user.xml:/etc/clickhouse-server/users.xml:ro
       - ./clickhouse/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      # - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_data:/var/lib/clickhouse
     ports:
       - "8002:9000"
       - "9123:8123"
@@ -321,6 +321,6 @@ services:
         condition: service_completed_successfully
 
 volumes:
-  # clickhouse_data:
-  #   external: false
+  clickhouse_data:
+    external: false
   postgres-db-volume:
