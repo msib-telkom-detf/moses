@@ -13,7 +13,7 @@ with DAG(
 ):
     test_airbyte_conn = AirbyteTriggerSyncOperator(
         task_id='test_airbyte_conn',
-        airbyte_conn_id='test_airbyte_conn',
+        airbyte_conn_id='airbyte_connector',
         connection_id='722049c4-5e54-4388-9d26-3002f42c8af0',
         asynchronous=False,
         timeout=3600,
