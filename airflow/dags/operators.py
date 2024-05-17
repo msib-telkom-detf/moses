@@ -3,6 +3,7 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
+from airflow.providers.airbyte.sensors.airbyte import AirbyteJobSensor
 
 with DAG(
     dag_id="testing",
@@ -15,12 +16,16 @@ with DAG(
         task_id='test_airbyte_conn',
         airbyte_conn_id='airbyte_connector',
         connection_id='722049c4-5e54-4388-9d26-3002f42c8af0',
-        asynchronous=False,
-        timeout=3600,
-        wait_seconds=3
+        asynchronous=True
     )
 
-    test_airbyte_conn
+    wait_for_sync_completion = AirbyteJobSensor(
+       task_id='airbyte_check_sync',
+       airbyte_conn_id='airbyte_connector',
+       airbyte_job_id=test_airbyte_conn.output
+    )
+
+    test_airbyte_conn >> wait_for_sync_completion 
 
     # task_dbt_run = BashOperator(
     #     task_id="dbt_run",
