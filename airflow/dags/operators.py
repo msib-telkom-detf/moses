@@ -4,8 +4,6 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from airflow_clickhouse_plugin.operators.clickhouse import ClickHouseOperator
-from apache.airflow.providers.clickhouse.operators.ClickhouseOperator import ClickhouseOperator
-
 
 with DAG(
     dag_id="final-project-etl",
@@ -14,7 +12,6 @@ with DAG(
     catchup=False,
     tags=["final-project-etl"],
 ):
-
     sync_operator = AirbyteTriggerSyncOperator(
         task_id='sync_operator',
         airbyte_conn_id='airbyte_connector',
