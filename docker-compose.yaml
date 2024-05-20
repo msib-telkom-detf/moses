@@ -89,7 +89,7 @@ x-airflow-common:
     # - ${AIRFLOW_PROJ_DIR:-.}/airflow/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/plugins:/opt/airflow/plugins
-    - ./dbt-airflow:/opt/airflow/dbt
+    - ./dbt:/opt/airflow/dbt
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -135,9 +135,9 @@ services:
       container_name: dbt
       build:
         context: .
-        dockerfile: ./dbt-airflow/Dockerfile
+        dockerfile: ./dbt/Dockerfile
       volumes:
-        - ./dbt-airflow:/usr/src/dbt
+        - ./dbt:/usr/src/dbt
       ports:
         - "22:22"
       working_dir: /usr/src/dbt
