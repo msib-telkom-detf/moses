@@ -139,7 +139,7 @@ services:
       volumes:
         - ./dbt:/usr/src/dbt
       ports:
-        - "26:22"
+        - "22:22"
       working_dir: /usr/src/dbt
       command: tail -F anything
 
