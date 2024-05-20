@@ -3,12 +3,8 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
-
-from airflow.providers.ssh.operators.ssh import SSHOperator
-
-# from airflow_clickhouse_plugin.operators.clickhouse import ClickHouseOperator
-
-# from apache.airflow.providers.clickhouse.operators.ClickhouseOperator import ClickhouseOperator
+from airflow_clickhouse_plugin.operators.clickhouse import ClickHouseOperator
+from apache.airflow.providers.clickhouse.operators.ClickhouseOperator import ClickhouseOperator
 
 
 with DAG(
@@ -18,11 +14,6 @@ with DAG(
     catchup=False,
     tags=["final-project-etl"],
 ):
-    # dbt_debug_task = SSHOperator(
-    #     task_id='dbt_debug',
-    #     ssh_conn_id='ssh_dbt',
-    #     command='cd imdb && dbt debug',
-    # )
 
     sync_operator = AirbyteTriggerSyncOperator(
         task_id='sync_operator',
