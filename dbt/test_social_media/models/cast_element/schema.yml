@@ -1,0 +1,6 @@
+version: 2
+
+sources:
+- name: airbyte_internal
+  tables:
+  - name: testing_social_media_mental_health_raw__stream_testing_data
