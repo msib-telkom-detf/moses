@@ -1,4 +1,4 @@
-clickhouse_imdb:
+test_social_media:
   target: dev
   outputs:
     dev:
