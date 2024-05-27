@@ -13,7 +13,7 @@ with cast_data as (
         JSONExtractString(_airbyte_data, '_8__what_is_the_average_time_you_spend_on_social_media_everyday') AS "_8__What_is_the_average_time_you_spend_on_social_media_everyday",
         JSONExtractInt(_airbyte_data, '_9__how_often_do_you_find_yourself_using_social_media_without_a') AS "_9__How_often_do_you_find_yourself_using_Social_media_without_a_specificpurpose"
     FROM 
-        {{ source('airbyte_internal', 'testing_social_media_mental_health_raw__stream_testing_data') }._airbyte_data}
+        {{ source('airbyte_internal', 'testing_social_media_mental_health_raw__stream_testing_data') }}._airbyte_data
 )
 
 select *
