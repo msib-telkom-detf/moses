@@ -828,3 +828,5 @@ configs:
 networks:
   airbyte_public:
   airbyte_internal:
+  moses-default:
+    external: true
