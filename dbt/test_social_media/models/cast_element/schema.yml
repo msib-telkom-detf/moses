@@ -1,6 +1,47 @@
+
 version: 2
 
-sources:
-- name: airbyte_internal
-  tables:
-  - name: testing_social_media_mental_health_raw__stream_testing_data
+models:
+  - name: cast_data
+    description: "raw data that has been cast"
+    columns:
+      - name: timestamp
+        description: ""
+        tests:
+          - not_null
+      - name: _1__What_is_yourage
+        description: ""
+        tests:
+          - not_null
+      - name: _2__gender
+        description: ""
+        tests:
+          - not_null
+      - name: _3__relationship_status
+        description: ""
+        tests:
+          - not_null
+      - name: _4__occupation_status
+        description: ""
+        tests:
+          - not_null
+      - name: _5__what_type_of_organizations_are_you_affiliatedwith
+        description: ""
+        tests:
+          - not_null
+      - name: _6__do_you_use_socialmedia
+        description: ""
+        tests:
+          - not_null
+      - name: _7__what_social_media_platforms_do_you_commonlyuse
+        description: ""
+        tests:
+          - not_null
+      - name: _8__what_is_the_average_time_you_spend_on_social_media_everyday
+        description: ""
+        tests:
+          - not_null
+      - name: _9__how_often_do_you_find_yourself_using_social_media_without_a
+        description: ""
+        tests:
+          - not_null
