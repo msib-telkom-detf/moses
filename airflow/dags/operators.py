@@ -2,7 +2,7 @@ import pendulum
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.operators.ssh import SSHOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 # from airflow_clickhouse_plugin.operators.clickhouse import ClickHouseOperator
 
