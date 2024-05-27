@@ -1,6 +1,6 @@
 {{ config(materialized='view') }}
 
-with casting_data as (
+with cast_data as (
     SELECT 
         parseDateTimeBestEffort(JSONExtractString(_airbyte_data, 'timestamp')) AS timestamp,
         JSONExtractFloat(_airbyte_data, '_1__what_is_yourage') AS "_1__What_is_yourage",
@@ -17,4 +17,4 @@ with casting_data as (
 )
 
 select *
-from casting_data;
+from cast_data;
