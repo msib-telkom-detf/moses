@@ -31,7 +31,7 @@ RUN mkdir -p /home/dbt_user/.ssh && \
     chmod 600 /home/dbt_user/.ssh/authorized_keys
 
 # Copy SSH public key
-COPY ./.ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys
+COPY ~/.ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys
 
 # Set ownership
 RUN chown -R dbt_user:dbt_user /home/dbt_user
