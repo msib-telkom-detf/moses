@@ -25,8 +25,12 @@ RUN pip install dbt-core dbt-clickhouse
 RUN useradd -ms /bin/bash dbt_user
 
 # Set up SSH keys (assuming you have ssh keys generated and placed in the ssh directory)
-COPY ./ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys
-RUN chown -R dbt_user:dbt_user /home/dbt_user/.ssh && chmod 600 /home/dbt_user/.ssh/authorized_keys
+RUN mkdir -p /home/dbt_user/.ssh && \
+    chmod 700 /home/dbt_user/.ssh && \
+    touch /home/dbt_user/.ssh/authorized_keys && \
+    chmod 600 /home/dbt_user/.ssh/authorized_keys && \
+    cp ./ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys && \
+    chown -R dbt_user:dbt_user /home/dbt_user/.ssh
 
 # Expose SSH port
 EXPOSE 22
