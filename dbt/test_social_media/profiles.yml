@@ -1,0 +1,11 @@
+clickhouse_imdb:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: raw_data
+      host: clickhouse
+      port: 9123
+      user: admin
+      password: 'admin'
+      secure: False
