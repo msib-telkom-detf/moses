@@ -28,12 +28,17 @@ RUN useradd -ms /bin/bash dbt_user
 RUN mkdir -p /home/dbt_user/.ssh && \
     chmod 700 /home/dbt_user/.ssh && \
     touch /home/dbt_user/.ssh/authorized_keys && \
-    chmod 600 /home/dbt_user/.ssh/authorized_keys && \
-    cp ./ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys && \
-    chown -R dbt_user:dbt_user /home/dbt_user/.ssh
+    chmod 600 /home/dbt_user/.ssh/authorized_keys
+
+# Copy SSH public key
+COPY ./ssh/id_rsa.pub /home/dbt_user/.ssh/authorized_keys
+
+# Set ownership
+RUN chown -R dbt_user:dbt_user /home/dbt_user
 
 # Expose SSH port
 EXPOSE 22
 
 # Start the SSH service
 CMD ["/usr/sbin/sshd", "-D"]
+
