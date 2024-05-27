@@ -133,7 +133,7 @@ services:
       context: .
       dockerfile: ./dbt/Dockerfile
     volumes:
-      - /path/to/your/id_rsa.pub:/home/dbt_user/.ssh/authorized_keys:ro
+      - /.ssh/id_rsa.pub:/home/dbt_user/.ssh/authorized_keys:ro
     expose:
       - "22"
 
