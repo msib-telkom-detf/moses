@@ -125,6 +125,8 @@ services:
         - ./dbt:/usr/src/dbt
       working_dir: /usr/src/dbt
       command: tail -F anything
+      expose:
+        - "22"
 
 # ----------------------------------- CLICKHOUSE -----------------------------------
 
