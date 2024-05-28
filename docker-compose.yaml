@@ -167,10 +167,6 @@ services:
     command: webserver
     ports:
       - "8080:8080"
-    environment:
-      - AIRFLOW__WEBSERVER__AUTHENTICATE=True
-      - AIRFLOW__WEBSERVER__AUTHENTICATE_USERNAME=moses
-      - AIRFLOW__WEBSERVER__AUTHENTICATE_PASSWORD=mosessatudata
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
