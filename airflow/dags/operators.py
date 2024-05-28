@@ -4,11 +4,11 @@ from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 
 with DAG(
-    dag_id="test-dbt",
+    dag_id="etl-pipeline",
     schedule=None,
     start_date=pendulum.datetime(2024, 1, 1, tz="Asia/Jakarta"),
     catchup=False,
-    tags=["test-dbt"],
+    tags=["etl-pipeline"],
 ):
     
     ingest_data = AirbyteTriggerSyncOperator(
