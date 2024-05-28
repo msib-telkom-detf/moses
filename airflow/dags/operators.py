@@ -23,7 +23,7 @@ with DAG(
     # )
 
     dbt_command = """
-    cd test_social_media # Activate dbt virtual environment if needed
+    cd /usr/src/dbt/test_social_media # Activate dbt virtual environment if needed
     dbt run # Run dbt command
     """
 
