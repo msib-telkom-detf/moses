@@ -1,13 +1,3 @@
-# FROM python:3.8.13
-
-# RUN apt-get update \
-#     && apt-get install -y --no-install-recommends
-
-# ADD . /usr/src/dbt/imdb
-
-# RUN pip install dbt-core
-# RUN pip install dbt-clickhouse
-
 # dbt/Dockerfile
 FROM python:3.8-slim
 
@@ -22,6 +12,11 @@ RUN mkdir /var/run/sshd
 # Set up password for root user (for testing purposes)
 RUN echo 'root:password' | chpasswd
 
+# Add custom SSH configuration
+RUN echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+
+# Installation dbt dependencies
 RUN pip install dbt-core
 RUN pip install dbt-clickhouse
 
@@ -30,6 +25,3 @@ EXPOSE 22
 
 # Start the SSH service
 CMD ["/usr/sbin/sshd", "-D"]
-
-
-
