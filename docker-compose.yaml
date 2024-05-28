@@ -99,34 +99,9 @@ x-airflow-common:
       condition: service_healthy
 
 services:
-  postgres:
-    image: postgres:13
-    container_name: postgres
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=abcdef
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
 
 # ----------------------------------- DBT -----------------------------------
 
-  # dbt:
-  #     container_name: dbt
-  #     build:
-  #       context: .
-  #       dockerfile: ./dbt/Dockerfile
-  #     volumes:
-  #       - ./dbt:/usr/src/dbt
-  #     working_dir: /usr/src/dbt
-  #     command: tail -F anything
-  #     expose:
-  #       - "22"
   dbt:
     container_name: dbt
     build:
@@ -192,6 +167,10 @@ services:
     command: webserver
     ports:
       - "8080:8080"
+    environment:
+      - AIRFLOW__WEBSERVER__AUTHENTICATE=True
+      - AIRFLOW__WEBSERVER__AUTHENTICATE_USERNAME=moses
+      - AIRFLOW__WEBSERVER__AUTHENTICATE_PASSWORD=mosessatudata
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -363,6 +342,21 @@ services:
 
 
 # ----------------------------------- AIRBYTE -----------------------------------
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=abcdef
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
 
   airbyte-docker-proxy:
       image: alpine/socat
