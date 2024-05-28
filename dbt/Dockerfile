@@ -22,6 +22,9 @@ RUN mkdir /var/run/sshd
 # Set up password for root user (for testing purposes)
 RUN echo 'root:password' | chpasswd
 
+RUN pip install dbt-core
+RUN pip install dbt-clickhouse
+
 # Expose the SSH port
 EXPOSE 22
 
