@@ -133,9 +133,11 @@ services:
       context: .
       dockerfile: ./dbt/Dockerfile
     volumes:
-      - /.ssh/id_rsa.pub:/home/dbt_user/.ssh/authorized_keys:ro
-    expose:
-      - "22"
+      - ./dbt:/usr/src/dbt
+    working_dir: /usr/src/dbt
+    command: /usr/sbin/sshd -D
+    ports:
+      - "2222:22" # Map host port 2222 to container port 22 for SSH
 
 # ----------------------------------- CLICKHOUSE -----------------------------------
 
