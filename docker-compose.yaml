@@ -59,7 +59,7 @@ x-airflow-common:
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.9.1}
   build:
     context: .
-    dockerfile: Dockerfile
+    dockerfile: ./airflow/Dockerfile
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -78,7 +78,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- dbt-core==1.7.0 dbt-clickhouse==1.7.6}
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
@@ -87,7 +87,7 @@ x-airflow-common:
     # - ${AIRFLOW_PROJ_DIR:-.}/airflow/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/plugins:/opt/airflow/plugins
-    - ./dbt-airflow:/opt/airflow/dbt
+    # - ./dbt:/opt/airflow/dbt
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -99,20 +99,20 @@ x-airflow-common:
       condition: service_healthy
 
 services:
-  postgres:
-    image: postgres:13
-    container_name: postgres
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=abcdef
+
+# ----------------------------------- DBT -----------------------------------
+
+  dbt:
+    container_name: dbt
+    build:
+      context: .
+      dockerfile: ./dbt/Dockerfile
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+      - ./dbt:/usr/src/dbt
+    working_dir: /usr/src/dbt
+    command: /usr/sbin/sshd -D
+    ports:
+      - "2222:22" # Map host port 2222 to container port 22 for SSH
 
 # ----------------------------------- CLICKHOUSE -----------------------------------
 
@@ -338,6 +338,21 @@ services:
 
 
 # ----------------------------------- AIRBYTE -----------------------------------
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=abcdef
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
 
   airbyte-docker-proxy:
       image: alpine/socat
@@ -816,3 +831,5 @@ configs:
 networks:
   airbyte_public:
   airbyte_internal:
+  moses-default:
+    external: true

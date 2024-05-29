@@ -1,0 +1,11 @@
+test_social_media:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: raw_data
+      host: clickhouse
+      port: 8123
+      user: admin
+      password: 'admin'
+      secure: False
