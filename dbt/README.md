@@ -22,3 +22,7 @@
 8. After usage, shut down Docker Compose
 
 **For complete documentation, you can refer to the [ClickHouse website](https://clickhouse.com/docs/en/integrations/dbt)**
+
+## Docker Compose File Explaination
+### Port Usage
+- 2222:22 -> SSH
