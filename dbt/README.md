@@ -1,6 +1,6 @@
 # DBT Documentation
 
-## Run Clickhouse
+## Run DBT Container
 1. Go to main folder
 2. Run docker compose
 3. Check container ID dbt
