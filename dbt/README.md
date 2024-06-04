@@ -25,4 +25,4 @@
 
 ## Docker Compose File Explaination
 ### Port Usage
-- 2222:22 -> SSH
+- 2222:22 &#8594; SSH
