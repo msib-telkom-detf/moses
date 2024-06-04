@@ -23,6 +23,5 @@
 
 **For complete documentation, you can refer to the [ClickHouse website](https://clickhouse.com/docs/en/integrations/dbt)**
 
-## Docker Compose File Explaination
-### Port Usage
+## Port Usage
 - 2222:22 &#8594; SSH
