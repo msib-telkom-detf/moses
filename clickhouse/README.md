@@ -1,6 +1,6 @@
 # ClickHouse Documentation
 
-## Run Clickhouse
+## Run Clickhouse Container
 1. Go to main folder
 2. Run docker compose
 3. Check container ID clickhouse
@@ -19,10 +19,6 @@
 - USERNAME = default
 - PASSWORD = test
 
-## Docker Compose File Explaination
-### Port Container
-- 8123: ClickHouser server
-- 9000: ClickHouser client
-### Port Host
-- 9123: Port forward ClickHouse server on host
-- 8002: Port forward ClickHouse client on host
+## Port Usage
+- 8123:9123 &#8594; ClickHouser server
+- 9000:8002 &#8594; ClickHouser client
