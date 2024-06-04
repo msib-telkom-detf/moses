@@ -16,6 +16,14 @@
         - USERNAME = default
         - PASSWORD = test
 6. After usage, shut down Docker Compose
+   
+### Admin Access
+USERNAME = admin
+PASSWORD = admin
+
+### Default Access
+USERNAME = default
+PASSWORD = test
 
 ## Docker Compose File Explaination
 - Port Container
