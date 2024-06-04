@@ -12,12 +12,12 @@
 6. After usage, shut down Docker Compose
    
 ### Admin Access
-- USERNAME = admin
-- PASSWORD = admin
+- USERNAME: admin
+- PASSWORD: admin
 
 ### Default Access
-- USERNAME = default
-- PASSWORD = test
+- USERNAME: default
+- PASSWORD: test
 
 ## Port Usage
 - 8123:9123 &#8594; ClickHouser server
