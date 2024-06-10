@@ -1,0 +1,11 @@
+social_media_mental_health:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: structured_data
+      host: clickhouse
+      port: 8123
+      user: admin
+      password: 'admin'
+      secure: False
