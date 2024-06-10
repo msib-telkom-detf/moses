@@ -1,6 +1,6 @@
 # DBT Documentation
 
-## Run Clickhouse
+## Run DBT Container
 1. Go to main folder
 2. Run docker compose
 3. Check container ID dbt
@@ -22,3 +22,6 @@
 8. After usage, shut down Docker Compose
 
 **For complete documentation, you can refer to the [ClickHouse website](https://clickhouse.com/docs/en/integrations/dbt)**
+
+## Port Usage
+- 2222:22 &#8594; SSH

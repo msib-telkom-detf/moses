@@ -1,0 +1,7 @@
+timestamp,age,gender,relationship_status,occupation_status,affiliated_organization,uses_social_media,commonly_used_social_media_platforms,average_daily_use_of_social_media,scale_worries,scale_difficult_to_concentrate,scale_feel_depressed,scale_often_face_issues_regarding_sleep
+4/18/2022 19:18:47,21,Male,In a relationship,University Student,University,Yes,"Facebook, Twitter, Instagram, YouTube, Discord, Reddit",Between 2 and 3 hours,2,5,5,5
+4/18/2022 19:19:28,21,Female,Single,University Student,University,Yes,"Facebook, Twitter, Instagram, YouTube, Discord, Reddit",More than 5 hours,5,4,5,5
+4/18/2022 19:25:59,21,Female,Single,University Student,University,Yes,"Facebook, Instagram, YouTube, Pinterest",Between 3 and 4 hours,5,4,4,5
+4/18/2022 19:29:43,21,Female,Single,University Student,University,Yes,"Facebook, Instagram",More than 5 hours,5,3,4,2
+4/18/2022 19:33:31,21,Female,Single,University Student,University,Yes,"Facebook, Instagram, YouTube",Between 2 and 3 hours,5,5,4,1
+4/18/2022 19:33:48,22,Female,Single,University Student,University,Yes,"Facebook, Twitter, Instagram, YouTube, Discord, Pinterest, TikTok",Between 2 and 3 hours,4,3,3,4
