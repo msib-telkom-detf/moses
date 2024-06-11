@@ -13,7 +13,7 @@ SELECT
     JSONExtractString(_airbyte_data, 'gender') AS "gender",
     JSONExtractString(_airbyte_data, 'relationship_status') AS "relationship_status",
     JSONExtractString(_airbyte_data, 'occupation_status') AS "occupation_status",
-    JSONExtractString(_airbyte_data, 'affiliated_organization') AS "occupation_status",
+    JSONExtractString(_airbyte_data, 'affiliated_organization') AS "affiliated_organization",
     JSONExtractBool(_airbyte_data, 'uses_social_media') AS "uses_social_media",
     JSONExtractString(_airbyte_data, 'commonly_used_social_media_platforms') AS "commonly_used_social_media_platforms",
     JSONExtractString(_airbyte_data, 'average_daily_use_of_social_media') AS "average_daily_use_of_social_media",
