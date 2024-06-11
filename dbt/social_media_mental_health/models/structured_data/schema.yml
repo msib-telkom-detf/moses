@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+- name: airbyte_internal
+  tables:
+  - name: social_media_mental_health_raw__stream_smmh
+
+models:
+  - name: social_media_mental_health
+    description: "structured data social media mental health"
+    columns:
+      - name: timestamp
+        description: "data entry time"
+        tests:
+          - not_null
+      - name: age
+        description: "user age"
+        tests:
+          - not_null
+      - name: gender
+        description: "user gender"
+        tests:
+          - not_null
+      - name: relationship_status
+        description: "user relationship status"
+        tests:
+          - not_null
+      - name: occupation_status
+        description: "user occupation status"
+        tests:
+          - not_null
+      - name: affiliated_organization
+        description: "user affiliated organization"
+        tests:
+          - not_null
+      - name: uses_social_media
+        description: "whether the user uses social media or not"
+        tests:
+          - not_null
+      - name: commonly_used_social_media_platforms
+        description: "social media platforms used by users"
+        tests:
+          - not_null
+      - name: average_daily_use_of_social_media
+        description: "what is the average time you spend on social media every day?"
+        tests:
+          - not_null
+      - name: scale_worries
+        description: "how much are you bothered by worries?"
+        tests:
+          - not_null
+      - name: scale_difficult_to_concentrate
+        description: "do you find it difficult to concentrate on things?"
+        tests:
+          - not_null
+      - name: scale_feel_depressed
+        description: "how often do you feel depressed or down?"
+        tests:
+          - not_null
+      - name: scale_often_face_issues_regarding_sleep
+        description: "how often do you face issues regarding sleep?"
+        tests:
+          - not_null
