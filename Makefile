@@ -1,11 +1,12 @@
 _require_username_clickhouse:
 ifndef username_clickhouse
 	$(error username_clickhouse must be defined.)
+endif
 
 _require_password_clickhouse:
 ifndef password_clickhouse
-	$(error username_clickhouse must be defined.)
-
+	$(error password_clickhouse must be defined.)
+endif
 
 # Build container image
 build:
