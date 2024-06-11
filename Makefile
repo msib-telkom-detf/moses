@@ -1,16 +1,16 @@
 _require_username_clickhouse:
-ifndef username_clickhouse
-	$(error username_clickhouse must be defined.)
+ifndef username
+	$(error username must be defined.)
 endif
 
 _require_password_clickhouse:
-ifndef password_clickhouse
-	$(error password_clickhouse must be defined.)
+ifndef password
+	$(error password must be defined.)
 endif
 
 _require_username_postgres:
-ifndef username_clickhouse
-	$(error username_postgres must be defined.)
+ifndef username
+	$(error username must be defined.)
 endif
 
 # Build container image
@@ -30,12 +30,12 @@ container_down:
 
 # Run clickhouse client container
 run_clickhouse_client: _require_username_clickhouse _require_password_clickhouse
-	docker exec -it clickhouse clickhouse-client --user $(username_clickhouse) --password $(password_clickhouse)
+	docker exec -it clickhouse clickhouse-client --user $(username) --password $(password)
 
 run_dbt:
 	docker exec -it dbt bash
 
-run_postgres:
-	docker exec -it psql -U $(usename_postgres)
+run_postgres: _require_username_postgres
+	docker exec -it postgres psql -U $(username)
 
 
