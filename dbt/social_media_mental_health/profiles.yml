@@ -9,3 +9,15 @@ social_media_mental_health:
       user: admin
       password: 'admin'
       secure: False
+
+dw_social_media_mental_health:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: dw_social_media_mental_health
+      host: clickhouse
+      port: 8123
+      user: admin
+      password: 'admin'
+      secure: False
