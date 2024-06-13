@@ -6,17 +6,25 @@ sources:
   - name: social_media_mental_health
 
 models:
-  - name: dw_social_media_mental_health
+  - name: mental_health_fact
     description: "mental health fact table"
     columns:
       - name: user_id
-        description: "id user"
+        description: "foreign key to user dimension"
         tests:
           - not_null
+          - relationships:
+              to: ref('user_dimension')
+              field: user_id
+              name: relationship_mental_health_fact_to_user_dimension
       - name: social_media_id
-        description: "id social media"
+        description: "foreign key to social media dimension"
         tests:
           - not_null
+          - relationships:
+              to: ref('social_media_dimension')
+              field: social_media_id
+              name: relationship_mental_health_fact_to_social_media_dimension
       - name: scale_worries
         description: "how much are you bothered by worries?"
         tests:
