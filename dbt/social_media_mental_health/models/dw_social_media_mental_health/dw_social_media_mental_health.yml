@@ -6,7 +6,7 @@ sources:
   - name: social_media_mental_health
 
 models:
-  - name: mental_health_fact
+  - name: fact_mental_health
     description: "mental health fact table"
     columns:
       - name: user_id
@@ -42,7 +42,7 @@ models:
         tests:
           - not_null
 
-  - name: social_media_dimension
+  - name: dim_social_media
     description: "social media dimension table"
     columns:
       - name: social_media_id
@@ -59,7 +59,7 @@ models:
         tests:
           - not_null
     
-  - name: user_dimension
+  - name: dim_user
     description: "user dimension table"
     columns:
       - name: user_id
