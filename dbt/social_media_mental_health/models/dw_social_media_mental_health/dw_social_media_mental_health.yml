@@ -1,0 +1,96 @@
+version: 2
+
+sources:
+- name: structured_data
+  tables:
+  - name: social_media_mental_health
+
+models:
+  - name: mental_health_fact
+    description: "mental health fact table"
+    columns:
+      - name: user_id
+        description: "foreign key to user dimension"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('user_dimension')
+              field: user_id
+              name: relationship_mental_health_fact_to_user_dimension
+      - name: social_media_id
+        description: "foreign key to social media dimension"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('social_media_dimension')
+              field: social_media_id
+              name: relationship_mental_health_fact_to_social_media_dimension
+      - name: scale_worries
+        description: "how much are you bothered by worries?"
+        tests:
+          - not_null
+      - name: scale_difficult_to_concentrate
+        description: "do you find it difficult to concentrate on things?"
+        tests:
+          - not_null
+      - name: scale_feel_depressed
+        description: "how often do you feel depressed or down?"
+        tests:
+          - not_null
+      - name: scale_often_face_issues_regarding_sleep
+        description: "how often do you face issues regarding sleep?"
+        tests:
+          - not_null
+
+  - name: social_media_dimension
+    description: "social media dimension table"
+    columns:
+      - name: social_media_id
+        description: "id social media"
+        tests:
+          - not_null
+          - unique
+      - name: uses_social_media
+        description: "whether the user uses social media or not"
+        tests:
+          - not_null
+      - name: commonly_used_social_media_platforms
+        description: "social media platforms used by users"
+        tests:
+          - not_null
+      - name: average_daily_use_of_social_media
+        description: "what is the average time you spend on social media every day?"
+        tests:
+          - not_null
+  
+  - name: user_dimension
+    description: "user dimension table"
+    columns:
+      - name: user_id
+        description: "id user"
+        tests:
+          - not_null
+          - unique
+      - name: age
+        description: "user age"
+        tests:
+          - not_null
+      - name: gender
+        description: "user gender"
+        tests:
+          - not_null
+      - name: relationship_status
+        description: "user relationship status"
+        tests:
+          - not_null
+      - name: occupation_status
+        description: "user occupation status"
+        tests:
+          - not_null
+      - name: affiliated_organization
+        description: "user affiliated organization"
+        tests:
+          - not_null
+
+
+  
