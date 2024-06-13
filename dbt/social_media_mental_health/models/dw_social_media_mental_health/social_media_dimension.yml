@@ -6,13 +6,14 @@ sources:
   - name: social_media_mental_health
 
 models:
-  - name: dw_social_media_mental_health
+  - name: social_media_dimension
     description: "social media dimension table"
     columns:
       - name: social_media_id
         description: "id social media"
         tests:
           - not_null
+          - unique
       - name: uses_social_media
         description: "whether the user uses social media or not"
         tests:
