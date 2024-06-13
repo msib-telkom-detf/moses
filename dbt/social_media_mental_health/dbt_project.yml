@@ -6,7 +6,30 @@ name: 'social_media_mental_health'
 version: '1.0.0'
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'social_media_mental_health'
+profiles:
+  social_media_mental_health: 
+    target: dev
+    outputs:
+      dev:
+        type: clickhouse
+        schema: structured_data
+        host: clickhouse
+        port: 8123
+        user: admin
+        password: 'admin'
+        secure: False
+
+  dw_social_media_mental_health:
+    target: dev
+    outputs:
+      dev:
+        type: clickhouse
+        schema: dw_social_media_mental_health
+        host: clickhouse
+        port: 8123
+        user: admin
+        password: 'admin'
+        secure: False
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
