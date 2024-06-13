@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+- name: structured_data
+  tables:
+  - name: social_media_mental_health
+
+models:
+  - name: dw_social_media_mental_health
+    description: "user dimension table"
+    columns:
+      - name: user_id
+        description: "id user"
+        tests:
+          - not_null
+      - name: age
+        description: "user age"
+        tests:
+          - not_null
+      - name: gender
+        description: "user gender"
+        tests:
+          - not_null
+      - name: relationship_status
+        description: "user relationship status"
+        tests:
+          - not_null
+      - name: occupation_status
+        description: "user occupation status"
+        tests:
+          - not_null
+      - name: affiliated_organization
+        description: "user affiliated organization"
+        tests:
+          - not_null
