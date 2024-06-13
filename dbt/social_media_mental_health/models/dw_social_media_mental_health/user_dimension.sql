@@ -7,8 +7,9 @@ with user_dimension as (
         gender,
         relationship_status,
         occupation_status,
-        affiliated_organization
+        affiliated_organization,
+        average_daily_use_of_social_media
     FROM
         {{ source('structured_data', 'social_media_mental_health') }}
 )
-SELECT * FROM user_dimension 
+SELECT * FROM user_dimension
