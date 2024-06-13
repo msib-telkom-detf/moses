@@ -58,11 +58,7 @@ models:
         description: "social media platforms used by users"
         tests:
           - not_null
-      - name: average_daily_use_of_social_media
-        description: "what is the average time you spend on social media every day?"
-        tests:
-          - not_null
-  
+    
   - name: user_dimension
     description: "user dimension table"
     columns:
@@ -89,6 +85,10 @@ models:
           - not_null
       - name: affiliated_organization
         description: "user affiliated organization"
+        tests:
+          - not_null
+      - name: average_daily_use_of_social_media
+        description: "what is the average time you spend on social media every day?"
         tests:
           - not_null
 
