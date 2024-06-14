@@ -39,7 +39,7 @@ with DAG(
     structured_to_dwh_transformation = SSHOperator(
         task_id='run_transform_dwh_dbt_command',
         ssh_conn_id='dbt_conn',
-        command=structured_data_dbt_command,
+        command=dwh_dbt_command,
     )
 
     ingest_data >> unstructured_to_structured_transformation >> structured_to_dwh_transformation
