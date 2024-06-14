@@ -1,4 +1,4 @@
-social_media_mental_health:
+structured_data_connection:
   target: dev
   outputs:
     dev:
@@ -10,7 +10,7 @@ social_media_mental_health:
       password: 'admin'
       secure: False
 
-dw_social_media_mental_health:
+dwh_connection:
   target: dev
   outputs:
     dev:
