@@ -4,7 +4,7 @@ with airbyte_data as (
     SELECT 
         _airbyte_data
     FROM 
-        {{ source('airbyte_internal', 'social_media_mental_health_raw__stream_smmh') }}
+        {{ source('airbyte_internal', 'unstructured_data_raw__stream_smmh') }}
 )
 
 SELECT 
