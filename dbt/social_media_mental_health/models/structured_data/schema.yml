@@ -3,10 +3,10 @@ version: 2
 sources:
 - name: airbyte_internal
   tables:
-  - name: social_media_mental_health_raw__stream_smmh
+  - name: unstructured_data_raw__stream_smmh
 
 models:
-  - name: social_media_mental_health
+  - name: structured_social_media_mental_health
     description: "structured data social media mental health"
     columns:
       - name: timestamp
