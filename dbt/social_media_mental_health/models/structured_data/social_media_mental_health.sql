@@ -22,6 +22,6 @@ SELECT
     JSONExtractInt(_airbyte_data, 'scale_difficult_to_concentrate') AS "scale_difficult_to_concentrate",
     JSONExtractInt(_airbyte_data, 'scale_feel_depressed') AS "scale_feel_depressed",
     JSONExtractInt(_airbyte_data, 'scale_often_face_issues_regarding_sleep') AS "scale_often_face_issues_regarding_sleep",
-    parseDateTimeBestEffort(JSONExtractString(_airbyte_extracted_at, '_airbyte_extracted_at')) AS "data_extract_time"
+    _airbyte_extracted_at AS "extract_time"
 FROM 
     airbyte_data
