@@ -2,7 +2,8 @@
 
 with airbyte_data as (
     SELECT 
-        _airbyte_data
+        _airbyte_data, 
+        _airbyte_extracted_at
     FROM 
         {{ source('airbyte_internal', 'unstructured_data_raw__stream_smmh') }}
 )
@@ -20,6 +21,7 @@ SELECT
     JSONExtractInt(_airbyte_data, 'scale_worries') AS "scale_worries",
     JSONExtractInt(_airbyte_data, 'scale_difficult_to_concentrate') AS "scale_difficult_to_concentrate",
     JSONExtractInt(_airbyte_data, 'scale_feel_depressed') AS "scale_feel_depressed",
-    JSONExtractInt(_airbyte_data, 'scale_often_face_issues_regarding_sleep') AS "scale_often_face_issues_regarding_sleep"
+    JSONExtractInt(_airbyte_data, 'scale_often_face_issues_regarding_sleep') AS "scale_often_face_issues_regarding_sleep",
+    parseDateTimeBestEffort(JSONExtractString(_airbyte_extracted_at, '_airbyte_extracted_at')) AS "data_extract_time"
 FROM 
     airbyte_data
