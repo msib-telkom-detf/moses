@@ -61,3 +61,7 @@ models:
         description: "how often do you face issues regarding sleep?"
         tests:
           - not_null
+      - name: extract_time
+        description: "extract time social media mental health"
+        tests:
+          - not_null
