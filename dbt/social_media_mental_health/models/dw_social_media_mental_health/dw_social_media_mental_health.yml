@@ -41,6 +41,10 @@ models:
         description: "how often do you face issues regarding sleep?"
         tests:
           - not_null
+      - name: timestamp
+        description: "data entry time"
+        tests:
+          - not_null
 
   - name: dim_social_media
     description: "social media dimension table"
@@ -56,6 +60,10 @@ models:
           - not_null
       - name: commonly_used_social_media_platforms
         description: "social media platforms used by users"
+        tests:
+          - not_null
+      - name: timestamp
+        description: "data entry time"
         tests:
           - not_null
     
@@ -89,6 +97,10 @@ models:
           - not_null
       - name: average_daily_use_of_social_media
         description: "what is the average time you spend on social media every day?"
+        tests:
+          - not_null
+      - name: timestamp
+        description: "data entry time"
         tests:
           - not_null
 
