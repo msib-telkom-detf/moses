@@ -10,5 +10,6 @@ with fact_mental_health as (
         scale_worries   
     FROM
         {{ source('structured_data', 'social_media_mental_health') }} 
+    WHERE DATE(extract_time) = SUBDATE(CURDATE(), INTERVAL 1 DAY)
 )
 SELECT * FROM fact_mental_health 
