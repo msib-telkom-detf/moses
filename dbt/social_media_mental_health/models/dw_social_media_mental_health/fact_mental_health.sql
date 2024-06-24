@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='incremental') }}
 
 with fact_mental_health as (
     SELECT
