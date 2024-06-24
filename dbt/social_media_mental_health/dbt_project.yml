@@ -33,7 +33,7 @@ models:
   social_media_mental_health: 
     # Config indicated by + and applies to all files under models/example/
     structured_data:
-      +materialized: view
+      +materialized: incremental
     dw_social_media_mental_health:
-      +materialized: view
+      +materialized: incremental
   
