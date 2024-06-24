@@ -24,4 +24,4 @@ SELECT
 FROM 
     airbyte_data
 WHERE 
-    DATE(timestamp) = SUBDATE(CURDATE(), INTERVAL 2 DAY)
+    DATE(timestamp) = SUBDATE(CURDATE(), INTERVAL 1 DAY)
