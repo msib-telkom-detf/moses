@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='incremental') }}
 
 with airbyte_data as (
     SELECT 
