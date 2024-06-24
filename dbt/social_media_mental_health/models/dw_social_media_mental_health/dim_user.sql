@@ -11,6 +11,6 @@ with dim_user as (
         average_daily_use_of_social_media
     FROM
         {{ source('structured_data', 'social_media_mental_health') }}
-    WHERE DATE(timestamp) = SUBDATE(CURDATE(), INTERVAL 2 DAY)
+    WHERE DATE(timestamp) = SUBDATE(CURDATE(), INTERVAL 1 DAY)
 )
 SELECT * FROM dim_user
