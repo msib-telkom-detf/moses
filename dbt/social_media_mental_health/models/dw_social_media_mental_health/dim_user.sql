@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='incremental') }}
 
 with dim_user as (
     SELECT 
