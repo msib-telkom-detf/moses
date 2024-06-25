@@ -5,7 +5,7 @@ from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperat
 
 with DAG(
     dag_id="etl-pipeline",
-    schedule="35 14 * * *",
+    schedule="08 14 * * *",
     start_date=pendulum.datetime(2024, 1, 1, tz="Asia/Jakarta"),
     catchup=False,
     tags=["etl-pipeline"],
