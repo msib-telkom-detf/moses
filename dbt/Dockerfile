@@ -4,7 +4,7 @@ FROM python:3.8-slim
 # Install necessary packages
 RUN apt-get update && \
     apt-get install -y openssh-server && \
-    apt-get clean
+    apt-get clean && apt-get install -y git
 
 # Create the SSH directory and set up keys (optional, for simplicity, we skip it here)
 RUN mkdir /var/run/sshd

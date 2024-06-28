@@ -1,9 +1,21 @@
-social_media_mental_health:
+structured_data_connection:
   target: dev
   outputs:
     dev:
       type: clickhouse
       schema: structured_data
+      host: clickhouse
+      port: 8123
+      user: admin
+      password: 'admin'
+      secure: False
+
+dwh_connection:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: dw_social_media_mental_health
       host: clickhouse
       port: 8123
       user: admin
