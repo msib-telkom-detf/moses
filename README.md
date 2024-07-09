@@ -4,6 +4,17 @@
 
 -------------------------
 
+Moses is an acronym for Motor Milestone, which is the final project of the internship program at Telkom Indonesia, created by Alfath, Eci, and Wulan, mentored by Billy. The reason for choosing this name is that it represents our first step towards becoming Data Engineers in the professional world. Just like the developmental milestones in a baby's movement, we hope this project will guide us to navigate well in the Data Engineering field.
+
+This final project is an ETL pipeline with the infrastructure depicted in the diagram below. All components operate within an Azure VM, each with its own container.
+
+1. PostgreSQL serves as the data source used in this pipeline.
+2. Airbyte functions to perform data ingestion from the data source.
+3. Airflow serves as the orchestration of each process in the pipeline.
+4. DBT functions to transform the data source into raw data stored in the data warehouse.
+5. Clickhouse serves as the data warehouse.
+6. Superset functions to visualize the data.
+
 <h1 align="center"> 
     Documentation
 </h1>
