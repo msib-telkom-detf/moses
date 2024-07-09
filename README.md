@@ -8,6 +8,8 @@ Moses is an acronym for Motor Milestone, which is the final project of the inter
 
 This final project is an ETL pipeline with the infrastructure depicted in the diagram below. All components operate within an Azure VM, each with its own container.
 
+<br />![Alt text](https://github.com/msib-telkom-detf/moses/blob/main/Diagram.png) <br />
+
 1. PostgreSQL serves as the data source used in this pipeline.
 2. Airbyte functions to perform data ingestion from the data source.
 3. Airflow serves as the orchestration of each process in the pipeline.
